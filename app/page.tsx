@@ -779,31 +779,37 @@ export default function App() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 18, marginBottom: 18 }}>
               {/* Recent transactions */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 24 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)' }}>Recent Transactions</p>
-                  <button onClick={() => setTab('expenses')} style={{ fontSize: 12, color: '#0077b6', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>All expenses →</button>
-                </div>
-                {[...expenses.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(e => ({ ...e, _t: 'exp' as const })),
-                ...income.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4).map(i => ({ ...i, _t: 'inc' as const }))]
-                  .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 9).map(item => (
-                    <div key={item.id} className="tr-hover" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <Dot color={item._t === 'exp' ? '#e63946' : '#2d6a4f'} size={7} />
-                        <div>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{item.description || item.source}</p>
-                          <p style={{ fontSize: 11, color: 'var(--muted)' }}>{item.date} · {item.category}</p>
-                        </div>
-                      </div>
-                      <span style={{ fontWeight: 800, fontSize: 13, color: item._t === 'exp' ? '#e63946' : '#2d6a4f' }}>
-                        {item._t === 'exp' ? '-' : '+'}{fmt(item.amount)}
-                      </span>
-                    </div>
-                  ))}
-                {expenses.length + income.length === 0 && <Empty msg="No transactions yet." />}
-              </div>
-
+              {/* Recent transactions */}
+<div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 24 }}>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--muted)' }}>Recent Transactions</p>
+    <button onClick={() => setTab('expenses')} style={{ fontSize: 12, color: '#0077b6', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>All expenses →</button>
+  </div>
+  {(() => {
+    const recentExpenses = expenses.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(e => ({ ...e, _t: 'exp' as const }))
+    const recentIncome = income.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4).map(i => ({ ...i, _t: 'inc' as const }))
+    const allItems = [...recentExpenses, ...recentIncome].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 9)
+    
+    return allItems.map(item => (
+      <div key={item.id} className="tr-hover" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Dot color={item._t === 'exp' ? '#e63946' : '#2d6a4f'} size={7} />
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+              {item._t === 'exp' ? (item as any).description : (item as any).source}
+            </p>
+            <p style={{ fontSize: 11, color: 'var(--muted)' }}>{item.date} · {item.category}</p>
+          </div>
+        </div>
+        <span style={{ fontWeight: 800, fontSize: 13, color: item._t === 'exp' ? '#e63946' : '#2d6a4f' }}>
+          {item._t === 'exp' ? '-' : '+'}{fmt(item.amount)}
+        </span>
+      </div>
+    ))
+  })()}
+  {expenses.length + income.length === 0 && <Empty msg="No transactions yet." />}
+</div>
               {/* Budget overview */}
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
