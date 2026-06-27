@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Search, Loader } from 'lucide-react';
 import { useCurrency } from '@/lib/currency-context';
 import { format } from 'date-fns';
 
@@ -97,54 +97,63 @@ export default function CrudPage({ title, endpoint, fields, columns, currencyFie
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {icon && <div className={`p-2 rounded-xl ${colorMap[color]} text-white`}>{icon}</div>}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{items.length} records</p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">{title}</h1>
+          <p className="text-muted-foreground text-sm">{items.length} {items.length === 1 ? 'record' : 'records'}</p>
         </div>
-        <button onClick={openCreate} className={`flex items-center gap-2 px-4 py-2 ${colorMap[color]} text-white rounded-xl text-sm font-medium shadow-sm hover:shadow-md transition`}>
-          <Plus className="w-4 h-4" /> Add New
+        <button
+          onClick={openCreate}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent hover:shadow-xl text-white rounded-xl text-sm font-semibold shadow-lg transition-all hover:scale-105"
+        >
+          <Plus className="w-5 h-5" />
+          Add New
         </button>
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${title.toLowerCase()}...`}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      <div className="relative group">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition" />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={`Search ${title.toLowerCase()}...`}
+          className="w-full pl-12 pr-4 py-3.5 border border-white/20 rounded-xl bg-white/50 dark:bg-white/5 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition text-sm"
+        />
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div className="glass rounded-2xl border border-white/20 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div className="flex items-center justify-center h-56">
+            <div className="flex flex-col items-center gap-3">
+              <Loader className="w-8 h-8 text-primary animate-spin" />
+              <p className="text-sm text-muted-foreground">Loading data...</p>
+            </div>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-4xl mb-3">📭</div>
-            <p className="font-medium">No {title.toLowerCase()} yet</p>
-            <p className="text-sm mt-1">Click "Add New" to get started</p>
+          <div className="text-center py-16">
+            <div className="text-5xl mb-3">📭</div>
+            <p className="font-semibold text-foreground">No {title.toLowerCase()} yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Click "Add New" to create your first entry</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-gray-700/50">
+              <thead className="border-b border-white/10 bg-white/50 dark:bg-white/5">
                 <tr>
                   {columns.map(col => (
-                    <th key={col.key} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{col.label}</th>
+                    <th key={col.key} className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{col.label}</th>
                   ))}
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
+              <tbody className="divide-y divide-white/10">
                 {filtered.map(item => (
-                  <tr key={item._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <tr key={item._id} className="hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
                     {columns.map(col => (
-                      <td key={col.key} className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                      <td key={col.key} className="px-6 py-4 text-foreground">
                         {col.render ? col.render(item, fmt) : (
                           currencyFields.includes(col.key) ? fmt(item[col.key] || 0) :
                           col.key === 'date' || col.key === 'buyDate' || col.key === 'nextBillingDate' ? (item[col.key] ? format(new Date(item[col.key]), 'MMM d, yyyy') : '—') :
@@ -152,13 +161,13 @@ export default function CrudPage({ title, endpoint, fields, columns, currencyFie
                         )}
                       </td>
                     ))}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => openEdit(item)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition">
-                          <Pencil className="w-3.5 h-3.5" />
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEdit(item)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition">
+                          <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(item._id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
-                          <Trash2 className="w-3.5 h-3.5" />
+                        <button onClick={() => handleDelete(item._id)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition">
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -172,38 +181,66 @@ export default function CrudPage({ title, endpoint, fields, columns, currencyFie
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{editing ? 'Edit' : 'New'} {title.replace(/s$/, '')}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="glass rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-white/20">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <h2 className="text-xl font-bold text-foreground">{editing ? 'Edit' : 'Add'} {title.replace(/s$/, '')}</h2>
+              <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground transition p-1 hover:bg-white/50 dark:hover:bg-white/5 rounded-lg">
+                <X className="w-6 h-6" />
               </button>
             </div>
+
+            {/* Content */}
             <div className="p-6 space-y-4">
               {fields.map(field => (
                 <div key={field.key}>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{field.label}{field.required && ' *'}</label>
+                  <label className="block text-sm font-semibold text-foreground mb-2">{field.label}{field.required && <span className="text-destructive ml-1">*</span>}</label>
                   {field.type === 'select' ? (
-                    <select value={form[field.key] ?? ''} onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))}
-                      className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <select
+                      value={form[field.key] ?? ''}
+                      onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))}
+                      className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/50 dark:bg-white/5 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition text-sm"
+                    >
                       <option value="">Select {field.label}</option>
                       {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   ) : field.type === 'textarea' ? (
-                    <textarea value={form[field.key] ?? ''} onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))} rows={3} placeholder={field.placeholder}
-                      className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none" />
+                    <textarea
+                      value={form[field.key] ?? ''}
+                      onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))}
+                      rows={3}
+                      placeholder={field.placeholder}
+                      className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/50 dark:bg-white/5 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition text-sm resize-none"
+                    />
                   ) : (
-                    <input type={field.type} value={form[field.key] ?? ''} onChange={e => setForm(p => ({ ...p, [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value }))}
-                      placeholder={field.placeholder} required={field.required}
-                      className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+                    <input
+                      type={field.type}
+                      value={form[field.key] ?? ''}
+                      onChange={e => setForm(p => ({ ...p, [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value }))}
+                      placeholder={field.placeholder}
+                      required={field.required}
+                      className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/50 dark:bg-white/5 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition text-sm"
+                    />
                   )}
                 </div>
               ))}
             </div>
-            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancel</button>
-              <button onClick={handleSave} disabled={saving} className={`flex-1 py-2.5 ${colorMap[color]} text-white rounded-xl text-sm font-medium transition shadow-sm disabled:opacity-50`}>
+
+            {/* Footer */}
+            <div className="flex gap-3 p-6 border-t border-white/10 bg-white/25 dark:bg-white/5">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 py-3 border border-white/20 text-foreground rounded-xl text-sm font-semibold hover:bg-white/50 dark:hover:bg-white/10 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 py-3 bg-gradient-to-r from-primary to-accent text-white rounded-xl text-sm font-semibold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {saving && <Loader className="w-4 h-4 animate-spin" />}
                 {saving ? 'Saving...' : editing ? 'Update' : 'Create'}
               </button>
             </div>
